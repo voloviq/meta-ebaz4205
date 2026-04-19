@@ -51,5 +51,28 @@ CONFIG_DEBUG_UART_BASE=0xe0001000
 CONFIG_DEBUG_UART_CLOCK=100000000
 CONFIG_DEBUG_UART_ANNOUNCE=y
 CONFIG_SPL_SYS_MALLOC_F_LEN=0x8000
+
+# Extra download protocols over the serial console so NAND can be
+# programmed from a host that doesn't have Ethernet set up yet:
+#   loadx = Xmodem, loady = Ymodem, loadb = Kermit (already in base defconfig).
+CONFIG_CMD_LOADX=y
+CONFIG_CMD_LOADY=y
+
+# HTTP fetch, for pulling images straight from a web server (wget <url>).
+# Complements the standard tftpboot path and is convenient on networks
+# that already run a plain HTTP server.
+CONFIG_CMD_WGET=y
+
+# MTD partitions by label — lets `nand erase.part boot`, `nand write <addr> uboot <size>`
+# etc. address partitions by the name declared in the device tree instead of
+# offset hex, so flashing recipes stay correct if the layout ever changes.
+CONFIG_CMD_MTDPARTS=y
+CONFIG_MTD_PARTITIONS=y
+
+# Auto-load the FPGA bitstream before autoboot. Programs PL → GEM0 EMIO can
+# reach the on-board IP101GA PHY, so `dhcp`/`tftpboot` in the u-boot prompt
+# work out of the box when interrupting autoboot to flash NAND.
+CONFIG_USE_PREBOOT=y
+CONFIG_PREBOOT="if test -e mmc 0:1 /ebaz4205-base.bit; then fatload mmc 0 0x100000 /ebaz4205-base.bit && fpga loadb 0 0x100000 ${filesize}; fi"
 EOF
 }

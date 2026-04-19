@@ -7,8 +7,9 @@
 # kernel-yocto kmeta resolver rejects custom bsp/<subdir>/*.scc paths. kernel.bbclass
 # picks up .cfg files from SRC_URI automatically and feeds them to merge_config.sh.
 
-FILESEXTRAPATHS:prepend := "${THISDIR}/config:${THISDIR}/files:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/config:${THISDIR}/files:${THISDIR}/linux-xlnx:"
 
 SRC_URI:append:ebaz4205-zynq7 = " \
     file://bsp/net/eth.cfg \
+    file://0001-arm-dts-zynq-ebaz4205-add-nand-mtd-partitions.patch \
     "

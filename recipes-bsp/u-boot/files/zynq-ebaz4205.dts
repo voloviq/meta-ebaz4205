@@ -58,6 +58,37 @@
 
 	nand@0 {
 		reg = <0>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "boot";
+				reg = <0x00000000 0x00400000>;    /* 4 MiB — boot.bin */
+			};
+			partition@1 {
+				label = "uboot";
+				reg = <0x00400000 0x00400000>;    /* 4 MiB — u-boot.img */
+			};
+			partition@2 {
+				label = "dtb";
+				reg = <0x00800000 0x00100000>;    /* 1 MiB — zynq-ebaz4205.dtb */
+			};
+			partition@3 {
+				label = "bitstream";
+				reg = <0x00900000 0x00400000>;    /* 4 MiB — ebaz4205-base.bit */
+			};
+			partition@4 {
+				label = "kernel";
+				reg = <0x00D00000 0x00800000>;    /* 8 MiB — uImage */
+			};
+			partition@5 {
+				label = "ubi";
+				reg = <0x01500000 0x06B00000>;    /* 107 MiB — UBI rootfs */
+			};
+		};
 	};
 };
 

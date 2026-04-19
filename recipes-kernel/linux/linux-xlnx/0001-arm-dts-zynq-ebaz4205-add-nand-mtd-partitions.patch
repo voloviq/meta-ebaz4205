@@ -1,0 +1,58 @@
+From 0123456789abcdef0123456789abcdef01234567 Mon Sep 17 00:00:00 2001
+From: meta-ebaz4205 <noreply@example.com>
+Date: Sat, 19 Apr 2026 13:30:00 +0200
+Subject: [PATCH] arm: dts: zynq-ebaz4205: add NAND MTD partitions
+
+Declare the factory-free partition layout for the 128 MiB on-board NAND
+so the kernel exposes /dev/mtd0..5 and userspace tools can program
+the chip directly.
+
+Signed-off-by: meta-ebaz4205 <noreply@example.com>
+---
+ arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts | 31 ++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
+
+diff --git a/arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts b/arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts
+index 0000000..0000001 100644
+--- a/arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts
++++ b/arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts
+@@ -55,6 +55,37 @@
+ 
+ 	nand@0 {
+ 		reg = <0>;
++
++		partitions {
++			compatible = "fixed-partitions";
++			#address-cells = <1>;
++			#size-cells = <1>;
++
++			partition@0 {
++				label = "boot";
++				reg = <0x00000000 0x00400000>;
++			};
++			partition@1 {
++				label = "uboot";
++				reg = <0x00400000 0x00400000>;
++			};
++			partition@2 {
++				label = "dtb";
++				reg = <0x00800000 0x00100000>;
++			};
++			partition@3 {
++				label = "bitstream";
++				reg = <0x00900000 0x00400000>;
++			};
++			partition@4 {
++				label = "kernel";
++				reg = <0x00D00000 0x00800000>;
++			};
++			partition@5 {
++				label = "ubi";
++				reg = <0x01500000 0x06B00000>;
++			};
++		};
+ 	};
+ };
+ 
+-- 
+2.34.1
