@@ -1,11 +1,14 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/config:${THISDIR}/files:"
+# Extra kernel config for the EBAZ4205:
+#  - ICPLUS_PHY:  driver for the on-board IP101GA PHY used by gem0.
+#                 Without it the kernel logs "Could not get PHY for eth0: addr 0"
+#                 and Ethernet does not come up.
+#
+# We ship plain .cfg fragments (no .scc wrapper) because scarthgap linux-xlnx's
+# kernel-yocto kmeta resolver rejects custom bsp/<subdir>/*.scc paths. kernel.bbclass
+# picks up .cfg files from SRC_URI automatically and feeds them to merge_config.sh.
 
-SRC_URI_append = " \
-                 file://bsp/net/eth.scc \
-                 file://bsp/fs/mtd.scc \
-                 "
+FILESEXTRAPATHS:prepend := "${THISDIR}/config:${THISDIR}/files:"
 
-KERNEL_FEATURES_append = " \  
-                         bsp/net/eth.scc \
-                         bsp/fs/mtd.scc \
-                         "
+SRC_URI:append:ebaz4205-zynq7 = " \
+    file://bsp/net/eth.cfg \
+    "

@@ -1,4 +1,4 @@
-define KFEATURE_DESCRIPTION "Enable ICPlus PHYs"
-define KFEATURE_COMPATIBILITY board
+define KFEATURE_DESCRIPTION "Enable IC+ PHY driver (EBAZ4205 on-board IP101GA)"
+define KFEATURE_COMPATIBILITY all
 
 kconfig hardware eth.cfg

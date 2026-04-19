@@ -1,17 +1,22 @@
-require recipes-core/images/core-image-minimal.bb
-inherit extrausers
+SUMMARY = "Minimal image for the EBAZ4205 — boots to a serial login."
+LICENSE = "MIT"
 
-DESCRIPTION = "A small image just capable of allowing the device to boot"
+inherit core-image
 
-EXTRA_USERS_PARAMS = "\
-    usermod -P 'root' root; \
-    groupadd -r systemd-journal; \
+IMAGE_FEATURES += "empty-root-password allow-empty-password allow-root-login debug-tweaks"
+
+IMAGE_INSTALL += " \
+    packagegroup-core-boot \
+    kernel-modules \
+    ${CORE_IMAGE_EXTRA_INSTALL} \
     "
 
-IMAGE_INSTALL += "\
-        watchdog \
-        busybox \
-        sudo \
-        "
-         
-SYSTEMD_DEFAULT_TARGET = "multi-user.target"
+# Small user-space conveniences.
+IMAGE_INSTALL += " \
+    iproute2 \
+    iputils \
+    mtd-utils \
+    mtd-utils-ubifs \
+    "
+
+IMAGE_ROOTFS_EXTRA_SPACE = "32768"

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(fdtdump *)",
+      "Bash(ping *)",
+      "Bash(bitbake-layers show-*)",
+      "Bash(bitbake -p)",
+      "Bash(bitbake -e *)",
+      "Bash(bitbake -s)"
+    ]
+  }
+}

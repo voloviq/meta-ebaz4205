@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: MIT
+#
+# Build configuration for the EBAZ4205 board.
+
+MACHINE ??= "ebaz4205-zynq7"
+
+DISTRO ?= "poky"
+PACKAGE_CLASSES ?= "package_ipk"
+
+EXTRA_IMAGE_FEATURES ?= "debug-tweaks"
+
+USER_CLASSES ?= "buildstats"
+
+PATCHRESOLVE = "noop"
+
+BB_DISKMON_DIRS ??= "\
+    STOPTASKS,${TMPDIR},1G,100K \
+    STOPTASKS,${DL_DIR},1G,100K \
+    STOPTASKS,${SSTATE_DIR},1G,100K \
+    STOPTASKS,/tmp,100M,100K \
+    HALT,${TMPDIR},100M,1K \
+    HALT,${DL_DIR},100M,1K \
+    HALT,${SSTATE_DIR},100M,1K \
+    HALT,/tmp,10M,1K"
+
+CONF_VERSION = "2"
+
+# meta-xilinx-core ships 2023.1/2023.2 QEMU recipes that reference a missing
+# patch file on the scarthgap branch. We pin XILINX_RELEASE_VERSION to 2024.1
+# so those recipes are never selected — mask them to keep parsing clean.
+BBMASK += "meta-xilinx-core/recipes-devtools/qemu/qemu-xilinx.*_2023\."
+
+# meta-xilinx-core's graphics bbappends (libdrm, mesa, weston, …) all add
+# Xilinx-specific video patches that don't apply cleanly to scarthgap
+# upstream versions. EBAZ4205 is headless, so drop the whole directory.
+BBMASK += "meta-xilinx-core/recipes-graphics/"
+
+# meta-xilinx ships a few bbappends (weston 10.0.2, fsbl-firmware) that have
+# no matching base recipe in scarthgap poky — downgrade to a warning so
+# parsing succeeds.
+BB_DANGLINGAPPENDS_WARNONLY = "1"
+
+# Shared caches across all boards under ~/yocto/ — keeps tens of GB of
+# sources and sstate from being re-downloaded/re-built per machine.
+DL_DIR     ?= "${HOME}/yocto/downloads"
+SSTATE_DIR ?= "${HOME}/yocto/sstate-cache"
+# Per-machine TMPDIR avoids collisions if multiple builds run in parallel.
+TMPDIR      = "${HOME}/yocto/tmp-${MACHINE}"
+
+# Xilinx release to align kernel/u-boot versions with (meta-xilinx-core).
+XILINX_RELEASE_VERSION = "v2024.1"
+
+# Xilinx recipes ship proprietary-flagged dependencies; EBAZ4205 does not
+# need them but keeping the whitelist avoids surprises if users enable
+# optional components later.
+LICENSE_FLAGS_ACCEPTED += "xilinx"

@@ -1,4 +1,0 @@
-define KFEATURE_DESCRIPTION "Enable PWM"
-define KFEATURE_COMPATIBILITY all
-
-kconfig hardware pwm.cfg

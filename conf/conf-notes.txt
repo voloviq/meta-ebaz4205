@@ -1,6 +1,0 @@
-You can now run 'bitbake <target>'
-
-Common targets are:
-    ebaz4205-image-minimal
-    ebaz4205-image-standard
-    ebaz4205-image-standard-wic

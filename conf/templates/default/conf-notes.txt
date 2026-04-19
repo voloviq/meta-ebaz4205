@@ -1,0 +1,9 @@
+Common targets for EBAZ4205:
+
+    ebaz4205-image-minimal
+    ebaz4205-image
+
+Flash the resulting .wic to an SD card, e.g.:
+
+    dd if=tmp/deploy/images/ebaz4205-zynq7/ebaz4205-image-ebaz4205-zynq7.wic \
+       of=/dev/sdX bs=4M status=progress conv=fsync

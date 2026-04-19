@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: MIT
+#
+# EBAZ4205 SD card image: FAT /boot (for the Xilinx Zynq-7000 BootROM) +
+# ext4 rootfs on mmcblk0p2.
+#
+# Population: /boot is filled from IMAGE_BOOT_FILES (see the machine conf).
+# DTB is renamed to system.dtb so the stock meta-xilinx boot.scr finds it.
+
+part /boot --source bootimg-partition --ondisk mmcblk0 --fstype=vfat --label boot --active --align 4 --fixed-size 64M
+part /     --source rootfs            --ondisk mmcblk0 --fstype=ext4 --label root            --align 4
+
+bootloader --ptable msdos

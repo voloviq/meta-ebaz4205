@@ -1,0 +1,19 @@
+# U-Boot boot script for the EBAZ4205 SD card image.
+#
+# Substitutions (@@VAR@@) are performed by recipes-bsp/u-boot/u-boot-xlnx-scr
+# at do_compile time, using values from the machine conf. Final output is
+# boot.scr, placed on the FAT /boot partition and auto-executed by U-Boot.
+
+echo "== EBAZ4205 boot.scr =="
+
+setenv bootdev mmcblk0p
+
+fatload mmc 0 @@DEVICETREE_ADDRESS@@ @@DEVICE_TREE_NAME@@
+fatload mmc 0 @@KERNEL_LOAD_ADDRESS@@ @@KERNEL_IMAGETYPE@@
+
+fdt addr @@DEVICETREE_ADDRESS@@
+fdt get value bootargs /chosen bootargs
+setenv bootargs "$bootargs @@KERNEL_COMMAND_APPEND@@ @@KERNEL_ROOT_SD@@"
+
+echo "Booting kernel..."
+@@KERNEL_BOOTCMD@@ @@KERNEL_LOAD_ADDRESS@@ - @@DEVICETREE_ADDRESS@@

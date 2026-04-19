@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: meta-ebaz4205 <noreply@example.com>
+Date: Fri, 17 Apr 2026 00:00:00 +0200
+Subject: [PATCH] arm: dts: add zynq-ebaz4205 to Zynq-7000 dtb build list
+
+Adds the Ebang EBAZ4205 device tree (shipped alongside this patch via
+SRC_URI) to the list of DTBs built for CONFIG_ARCH_ZYNQ so that
+xilinx_zynq_virt_defconfig can select it.
+
+Signed-off-by: meta-ebaz4205 <noreply@example.com>
+---
+ arch/arm/dts/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/dts/Makefile b/arch/arm/dts/Makefile
+index 0000000..0000001 100644
+--- a/arch/arm/dts/Makefile
++++ b/arch/arm/dts/Makefile
+@@ -394,6 +394,7 @@ dtb-$(CONFIG_ARCH_ZYNQ) += \
+ 	zynq-topic-miami.dtb \
+ 	zynq-topic-miamilite.dtb \
+ 	zynq-topic-miamiplus.dtb \
++	zynq-ebaz4205.dtb \
+ 	zynq-zc702.dtb \
+ 	zynq-zc706.dtb \
+ 	zynq-zc770-xm010.dtb \
+--
+2.34.1
