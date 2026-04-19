@@ -9,10 +9,13 @@ from the meta-xilinx scarthgap branch. No Vivado / XSA dependency — the
 device tree is mainline-style and the U-Boot SPL is built from source using
 board-specific `ps7_init_gpl.[ch]` checked into this layer.
 
-**Status:** boots to a Poky 5.0 userland login over UART1 from SD card.
-See `docs/scarthgap-fixes.md` for the full list of workarounds applied
-against upstream meta-xilinx scarthgap regressions encountered during the
-port.
+**Status:** boots to a Poky 5.0 userland login over UART1 from SD card,
+with **Ethernet working** via a shipped FPGA bitstream that routes PS
+GEM0 through EMIO to the on-board IP101GA PHY (the PHY is wired to PL
+pins, not MIO — so no bitstream, no Ethernet). See
+`docs/scarthgap-fixes.md` for the full list of workarounds applied
+against upstream meta-xilinx scarthgap regressions and `hardware/README.md`
+for the Vivado project that produces the bitstream.
 
 ---
 
@@ -28,8 +31,10 @@ port.
   without. Tested on the **variant without** the PHY oscillator (the PHY
   is clocked from FCLK0 at 25 MHz — see the `assigned-clocks` entry in
   the device tree).
-- The FPGA side (PL) is **not** enabled in this layer. Only the PS (ARM +
-  standard peripherals) is brought up. FPGA overlays can be added on top.
+- The FPGA side (PL) carries a minimal bitstream
+  (`recipes-bsp/bitstream/files/ebaz4205-base.bit`, GPL-3.0-or-later,
+  imported from `nightseas/ebit_z7010`). It routes GEM0 EMIO to the
+  Ethernet PHY pins; no user logic in PL.
 - Early debug UART is enabled (`CONFIG_DEBUG_UART=y`) so SPL prints a
   `<debug_uart>` banner as soon as the ps7_init finishes — useful when
   diagnosing DDR or clock problems on a board revision that doesn't match

@@ -73,7 +73,9 @@ SPL prints a `<debug_uart>` banner as soon as ps7_init completes — useful for 
 **Known remaining warnings at boot** (documented in `docs/scarthgap-fixes.md` "Known remaining warnings"):
 - SPL's optional `system.dtb` probe fails — harmless, our boot.scr path doesn't use it.
 - u-boot "No Valid Environment Area" — we don't ship `u-boot.env`, defaults are fine.
-- Ethernet PHY (IP101GA) — kernel has no driver unless `CONFIG_ICPLUS_PHY=y` is pulled in via `recipes-kernel/linux/config/bsp/net/eth.cfg` (fragment is shipped and referenced from the kernel bbappend on `scarthgap-refresh`).
+- `macb: invalid hw address, using random` — no MAC in DTS, random MAC assigned per boot. For production, set `local-mac-address = [xx xx xx xx xx xx];` on `&gem0`.
+
+**Ethernet requires an FPGA bitstream.** EBAZ4205's IP101GA PHY is wired to PL pins, not PS MIO. The layer ships `recipes-bsp/bitstream/ebaz4205-bitstream.bb` which deploys `ebaz4205-base.bit` (vendored from `nightseas/ebit_z7010`, GPL-3.0-or-later). `boot.cmd.ebaz4205` runs `fatload mmc 0 0x100000 /ebaz4205-base.bit && fpga loadb 0` **before** the kernel load, so Linux probes the PHY with signals actually reaching the chip. Vivado sources for regenerating the bitstream live under `hardware/ebit-z7010/` — see `hardware/README.md`.
 
 ## Editing rules of thumb
 

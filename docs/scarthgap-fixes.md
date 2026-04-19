@@ -321,14 +321,49 @@ ebaz4205-zynq7 login: root
 root@ebaz4205-zynq7:~#
 ```
 
+## 18. Ethernet requires an FPGA bitstream (PL routing)
+
+**Symptom:** even after adding `CONFIG_ICPLUS_PHY=y` to the kernel,
+`eth0` appears in `/sys/class/net/` but stays `DOWN`, with:
+```
+macb e000b000.ethernet eth0: validation of ... failed: -EINVAL
+macb e000b000.ethernet eth0: Could not attach PHY (-22)
+```
+
+**Cause** (hardware, not software): EBAZ4205's on-board IP101GA PHY is
+wired to **PL pins**, not to PS MIO. PS GEM0 therefore needs its
+signals (MDC, MDIO, RXD[3:0], TXD[3:0], RX/TX_CLK, RX_DV, TX_EN, COL,
+CRS) routed through **EMIO** to those PL pins. Without a bitstream
+loaded, the PL is blank and MDIO reads return 0xFFFF → PHY advertises
+nothing → `phylink_validate` fails.
+
+**Fix:** ship an EMIO-routing bitstream and load it before the kernel
+starts.
+
+- `recipes-bsp/bitstream/ebaz4205-bitstream.bb` deploys
+  `ebaz4205-base.bit` (the PS-only reference design from
+  `nightseas/ebit_z7010`, GPL-3.0-or-later) to both DEPLOYDIR and
+  `/lib/firmware/` in the rootfs.
+- Machine conf: `EXTRA_IMAGEDEPENDS += "ebaz4205-bitstream"` +
+  `IMAGE_BOOT_FILES` gains `ebaz4205-base.bit`, so wic places it on the
+  FAT partition.
+- `recipes-bsp/u-boot/files/boot.cmd.ebaz4205` gained an
+  `fpga loadb 0` step ahead of the kernel load: u-boot programs the PL
+  before `bootm`, and Linux probes the PHY with signals actually
+  reaching the chip.
+
+The Vivado project sources from which the bitstream was generated are
+vendored in `hardware/ebit-z7010/` for reproducibility — see
+`hardware/README.md`.
+
+---
+
 ## Known remaining warnings (non-blocking)
 
 - `spl_load_image_fat_os: ... system.dtb ... -2` — SPL optional pre-OS
   DTB probe. We do not ship `system.dtb`; boot continues via `boot.scr`.
 - `*** Error - No Valid Environment Area found` in u-boot proper — no
   `u-boot.env` on SD. u-boot falls back to compiled-in defaults. Fine.
-- `Could not get PHY for eth0: addr 0` / `Could not attach PHY (-22)` —
-  kernel has no driver for the on-board IC+ IP101GA PHY because we
-  dropped the `bsp/net/eth.scc` fragment (see fix #9). Revisit when
-  Ethernet is needed — the fragment stays on disk under
-  `recipes-kernel/linux/config/bsp/` for future reuse.
+- `macb: invalid hw address, using random` — no MAC in device tree.
+  Harmless for development; for production, set one in the DTS via
+  `local-mac-address = [xx xx xx xx xx xx];` on the `&gem0` node.
