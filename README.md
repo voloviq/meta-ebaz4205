@@ -159,6 +159,20 @@ picocom -b 115200 /dev/ttyUSB0
 Default login: `root` with empty password. Drop the empty password by
 removing `debug-tweaks` / `empty-root-password` from the image recipe.
 
+### SSH access
+
+Both image targets ship an OpenSSH server. Once the board is up and has
+pulled an IP via DHCP:
+
+```bash
+ssh root@<board-ip>        # empty password
+scp file root@<board-ip>:/  # also works out-of-the-box (sftp-server installed)
+```
+
+Root login and empty passwords are enabled in both images for development;
+production builds should strip `empty-root-password` / `allow-root-login`
+from `IMAGE_FEATURES` and create a proper user via a custom recipe.
+
 ---
 
 ## Partition Layout (SD card)

@@ -1,9 +1,10 @@
 require recipes-core/images/ebaz4205-image-minimal.bb
 
-SUMMARY = "Standard EBAZ4205 image with SSH and common debugging tools."
+SUMMARY = "Standard EBAZ4205 image — minimal + OpenSSH + package manager + debug tools."
 
+# The minimal image already provides OpenSSH; here we add the full userland
+# debug set plus package-management (opkg runtime).
 IMAGE_FEATURES += " \
-    ssh-server-dropbear \
     package-management \
     tools-debug \
     "
