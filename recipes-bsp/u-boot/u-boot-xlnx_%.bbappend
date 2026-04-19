@@ -69,6 +69,12 @@ CONFIG_CMD_WGET=y
 CONFIG_CMD_MTDPARTS=y
 CONFIG_MTD_PARTITIONS=y
 
+# Default MTD ID + partitions so `nand read <addr> <label> <size>`,
+# `nand erase.part <label>` etc. work without having to setenv mtdparts
+# by hand at the u-boot prompt.
+CONFIG_MTDIDS_DEFAULT="nand0=nand0"
+CONFIG_MTDPARTS_DEFAULT="mtdparts=nand0:4m(boot),4m(uboot),1m(dtb),4m(bitstream),8m(kernel),-(ubi)"
+
 # Auto-load the FPGA bitstream before autoboot. Programs PL → GEM0 EMIO can
 # reach the on-board IP101GA PHY, so `dhcp`/`tftpboot` in the u-boot prompt
 # work out of the box when interrupting autoboot to flash NAND.
