@@ -8,6 +8,14 @@ echo "== EBAZ4205 boot.scr =="
 
 setenv bootdev mmcblk0p
 
+# Load the FPGA bitstream first. It routes GEM0 EMIO signals to the PL pins
+# that the on-board IP101GA Ethernet PHY is wired to. Without this, the PHY
+# is unreachable over MDIO and the kernel fails to attach it.
+if test -e mmc 0:1 /ebaz4205-base.bit; then
+    echo "Loading FPGA bitstream ebaz4205-base.bit ..."
+    fatload mmc 0 0x100000 /ebaz4205-base.bit && fpga loadb 0 0x100000 ${filesize}
+fi
+
 fatload mmc 0 @@DEVICETREE_ADDRESS@@ @@DEVICE_TREE_NAME@@
 fatload mmc 0 @@KERNEL_LOAD_ADDRESS@@ @@KERNEL_IMAGETYPE@@
 
