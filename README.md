@@ -9,13 +9,24 @@ from the meta-xilinx scarthgap branch. No Vivado / XSA dependency — the
 device tree is mainline-style and the U-Boot SPL is built from source using
 board-specific `ps7_init_gpl.[ch]` checked into this layer.
 
-**Status:** boots to a Poky 5.0 userland login over UART1 from SD card,
-with **Ethernet working** via a shipped FPGA bitstream that routes PS
-GEM0 through EMIO to the on-board IP101GA PHY (the PHY is wired to PL
-pins, not MIO — so no bitstream, no Ethernet). See
-`docs/scarthgap-fixes.md` for the full list of workarounds applied
-against upstream meta-xilinx scarthgap regressions and `hardware/README.md`
-for the Vivado project that produces the bitstream.
+**Status:** boots to a Poky 5.0 userland login over UART1 from SD card
+**or NAND**, with:
+
+- **Ethernet** via a shipped FPGA bitstream that routes PS GEM0 through
+  EMIO to the on-board IP101GA PHY (the PHY is wired to PL pins, not
+  MIO — so no bitstream, no Ethernet).
+- **Two on-board LEDs** (W13, W14 in PL bank 34) wired to the same EMIO
+  GPIO passthrough and exposed through the kernel `gpio-leds` driver,
+  with heartbeat + CPU-load triggers on by default.
+- **NAND flash** partitioned for raw-boot (boot / uboot / dtb /
+  bitstream / kernel) plus a 107 MiB UBI/UBIFS rootfs, programmable
+  from SD-booted Linux via `flash-nand` or from the u-boot prompt via
+  TFTP / HTTP / Y-Kermit.
+
+See `docs/scarthgap-fixes.md` for the full list of workarounds applied
+against upstream meta-xilinx scarthgap regressions, `docs/flashing-nand.md`
+for the tested SD → NAND → boot flow, and `hardware/README.md` for the
+Vivado project that produces the bitstream.
 
 ---
 
@@ -158,6 +169,41 @@ picocom -b 115200 /dev/ttyUSB0
 
 Default login: `root` with empty password. Drop the empty password by
 removing `debug-tweaks` / `empty-root-password` from the image recipe.
+
+### LEDs
+
+The two on-board LEDs (green, red) are wired to PL pins W13 and W14
+and routed through EMIO by the shipped bitstream. The kernel exposes
+them as:
+
+```
+/sys/class/leds/ebaz4205:green:heartbeat   # default trigger: heartbeat
+/sys/class/leds/ebaz4205:red:cpu           # default trigger: cpu
+```
+
+They start pulsing / blinking immediately on boot — no user-space
+setup required. To change triggers, for example ethernet activity on
+the red LED:
+
+```bash
+cat /sys/class/leds/ebaz4205:red:cpu/trigger           # see all triggers
+echo netdev > /sys/class/leds/ebaz4205:red:cpu/trigger
+echo eth0   > /sys/class/leds/ebaz4205:red:cpu/device_name
+echo 1      > /sys/class/leds/ebaz4205:red:cpu/link
+echo 1      > /sys/class/leds/ebaz4205:red:cpu/tx
+echo 1      > /sys/class/leds/ebaz4205:red:cpu/rx
+```
+
+Drive them directly by disabling the trigger:
+
+```bash
+echo none > /sys/class/leds/ebaz4205:green:heartbeat/trigger
+echo 1    > /sys/class/leds/ebaz4205:green:heartbeat/brightness    # on
+echo 0    > /sys/class/leds/ebaz4205:green:heartbeat/brightness    # off
+```
+
+LEDs are active-low on the board; the DTS sets `GPIO_ACTIVE_LOW` so
+brightness `1` means physically lit.
 
 ### SSH access
 

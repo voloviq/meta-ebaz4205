@@ -77,6 +77,10 @@ SPL prints a `<debug_uart>` banner as soon as ps7_init completes — useful for 
 
 **Ethernet requires an FPGA bitstream.** EBAZ4205's IP101GA PHY is wired to PL pins, not PS MIO. The layer ships `recipes-bsp/bitstream/ebaz4205-bitstream.bb` which deploys `ebaz4205-base.bit` (vendored from `nightseas/ebit_z7010`, GPL-3.0-or-later). `boot.cmd.ebaz4205` runs `fatload mmc 0 0x100000 /ebaz4205-base.bit && fpga loadb 0` **before** the kernel load, so Linux probes the PHY with signals actually reaching the chip. Vivado sources for regenerating the bitstream live under `hardware/ebit-z7010/` — see `hardware/README.md`.
 
+**LEDs on W13/W14 also come from the bitstream.** The same bitstream routes the first two EMIO GPIO bits to the two on-board LEDs. They're exposed as `gpio-leds` via `recipes-kernel/linux/linux-xlnx/0002-arm-dts-zynq-ebaz4205-add-gpio-leds-via-EMIO.patch` — GPIO 54/55 on `gpio0`, active-low, heartbeat and cpu triggers on by default. Kernel support is pulled in by `recipes-kernel/linux/config/bsp/leds/leds.cfg`.
+
+**NAND partitions are in BOTH device trees.** Kernel DTS is patched via `0001-arm-dts-zynq-ebaz4205-add-nand-mtd-partitions.patch`. U-boot DTS has them inline in `recipes-bsp/u-boot/files/zynq-ebaz4205.dts`. Layout: boot/uboot/dtb/bitstream/kernel (raw) + ubi (UBIFS rootfs). `CONFIG_MTDIDS_DEFAULT` + `CONFIG_MTDPARTS_DEFAULT` in u-boot so label-based `nand read ... uboot ...` works at the u-boot prompt without `setenv mtdparts`. `flash-nand` on target (in `ebaz4205-image-nand`) does the userspace flashing from SD-booted Linux.
+
 ## Editing rules of thumb
 
 - If u-boot stops booting after a config change, `bitbake u-boot-xlnx -c cleansstate` forces a full rebuild — sstate often carries stale SPL state across bbappend edits.

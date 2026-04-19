@@ -358,6 +358,25 @@ vendored in `hardware/ebit-z7010/` for reproducibility — see
 
 ---
 
+## 19. On-board LEDs via EMIO gpio-leds
+
+**Not a bug — a feature addition.** The EBAZ4205 has two LEDs wired to
+PL bank 34 pins W13 and W14 (active-low). Our bitstream already routes
+the first two EMIO GPIO bits there (see the XDC under
+`hardware/ebit-z7010/`).
+
+**Implementation:**
+- `recipes-kernel/linux/config/bsp/leds/leds.cfg` — `CONFIG_LEDS_GPIO=y`
+  plus heartbeat / cpu / timer / default-on / netdev triggers.
+- `recipes-kernel/linux/linux-xlnx/0002-arm-dts-zynq-ebaz4205-add-gpio-leds-via-EMIO.patch`
+  patches the upstream kernel DTS to add a `leds { compatible =
+  "gpio-leds"; ... }` node using GPIO 54 (EMIO bit 0 → W13) and GPIO 55
+  (EMIO bit 1 → W14), both `GPIO_ACTIVE_LOW`, with default triggers
+  set to `heartbeat` and `cpu`.
+
+After boot, `/sys/class/leds/ebaz4205:{green:heartbeat,red:cpu}/`
+expose standard sysfs controls.
+
 ## Known remaining warnings (non-blocking)
 
 - `spl_load_image_fat_os: ... system.dtb ... -2` — SPL optional pre-OS
