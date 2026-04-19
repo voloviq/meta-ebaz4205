@@ -1,0 +1,20 @@
+[Unit]
+Description=Grow rootfs to the full SD card on first boot
+DefaultDependencies=no
+Conflicts=shutdown.target
+After=systemd-remount-fs.service local-fs-pre.target
+Before=basic.target shutdown.target
+ConditionPathIsReadWrite=/
+# Skip if the script has already self-destructed (it removes itself and
+# the unit file, but the symlink in multi-user.target.wants might briefly
+# outlive them on an interrupted run).
+ConditionFileIsExecutable=/usr/bin/ebaz4205-resize-rootfs
+
+[Service]
+Type=oneshot
+RemainAfterExit=no
+ExecStart=/usr/bin/ebaz4205-resize-rootfs
+StandardOutput=journal+console
+
+[Install]
+WantedBy=multi-user.target

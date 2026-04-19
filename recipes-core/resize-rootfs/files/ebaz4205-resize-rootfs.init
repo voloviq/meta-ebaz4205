@@ -1,0 +1,28 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          ebaz4205-resize-rootfs
+# Required-Start:    mountall
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: Grow rootfs to the full SD card on first boot
+### END INIT INFO
+
+case "$1" in
+    start)
+        if [ -x /usr/bin/ebaz4205-resize-rootfs ]; then
+            /usr/bin/ebaz4205-resize-rootfs
+        else
+            # Already self-destructed on a previous boot — nothing to do.
+            :
+        fi
+        ;;
+    stop|status|restart|force-reload)
+        # oneshot; nothing to do
+        :
+        ;;
+    *)
+        echo "Usage: $0 start"; exit 1 ;;
+esac
+
+exit 0

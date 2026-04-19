@@ -24,6 +24,7 @@ IMAGE_INSTALL += " \
     mtd-utils \
     mtd-utils-ubifs \
     openssh-sftp-server \
+    ebaz4205-resize-rootfs \
     "
 
 IMAGE_ROOTFS_EXTRA_SPACE = "32768"
