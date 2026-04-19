@@ -1,0 +1,54 @@
+From 1100000000abcdef1100000000abcdef11000000 Mon Sep 17 00:00:00 2001
+From: meta-ebaz4205 <noreply@example.com>
+Date: Sat, 19 Apr 2026 15:30:00 +0200
+Subject: [PATCH] arm: dts: zynq-ebaz4205: add gpio-leds via EMIO
+
+The EBAZ4205 has two LEDs wired to PL pins W13 and W14 (both in
+bank 34, active-low). Our shipped ebaz4205-base.bit routes the
+first two bits of PS GPIO EMIO to those pins, which in Linux shows
+up as GPIO 54 and 55 on gpio0. Expose them through gpio-leds so
+standard triggers take over on boot (heartbeat on the green LED,
+CPU load on the red one).
+
+Signed-off-by: meta-ebaz4205 <noreply@example.com>
+---
+ arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts b/arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts
+index 0000000..0000001 100644
+--- a/arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts
++++ b/arch/arm/boot/dts/xilinx/zynq-ebaz4205.dts
+@@ -4,6 +4,7 @@
+  */
+ /dts-v1/;
+ /include/ "zynq-7000.dtsi"
++#include <dt-bindings/gpio/gpio.h>
+ 
+ / {
+ 	model = "Ebang EBAZ4205";
+@@ -22,6 +23,22 @@
+ 	chosen {
+ 		stdout-path = "serial0:115200n8";
+ 	};
++
++	leds {
++		compatible = "gpio-leds";
++
++		led-heartbeat {
++			label = "ebaz4205:green:heartbeat";
++			gpios = <&gpio0 54 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "heartbeat";
++		};
++
++		led-cpu {
++			label = "ebaz4205:red:cpu";
++			gpios = <&gpio0 55 GPIO_ACTIVE_LOW>;
++			linux,default-trigger = "cpu";
++		};
++	};
+ };
+ 
+ &clkc {
+-- 
+2.34.1

@@ -12,5 +12,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/config:${THISDIR}/files:${THISDIR}/linux-
 SRC_URI:append:ebaz4205-zynq7 = " \
     file://bsp/net/eth.cfg \
     file://bsp/fs/mtd.cfg \
+    file://bsp/leds/leds.cfg \
     file://0001-arm-dts-zynq-ebaz4205-add-nand-mtd-partitions.patch \
+    file://0002-arm-dts-zynq-ebaz4205-add-gpio-leds-via-EMIO.patch \
     "
