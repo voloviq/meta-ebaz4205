@@ -239,8 +239,18 @@ Once Step 5 works end-to-end, you can cut the SD dependency entirely:
 - **Populate R2584** (MIO4 pulled low → NAND boot mode)
 
 Reverse of the mod you did to enable SD boot. BootROM then reads
-`boot.bin` from NAND offset 0, SPL pulls `u-boot.img` from NAND offset
-0x00400000, and u-boot starts.
+`boot.bin` from NAND offset 0 and starts SPL.
+
+> **This does not currently boot to u-boot.** u-boot-xlnx 2024.01 has
+> no Zynq 7000 SPL NAND loader, so SPL has no way to fetch `u-boot.img`
+> from the `uboot` partition and dies with `SPL: failed to boot from
+> all boot devices`. Enabling `CONFIG_SPL_NAND_SUPPORT=y` fails link
+> with undefined references to `nand_spl_load_image`, `nand_init`,
+> `nand_register`, `nand_calculate_ecc`, … — the SPL variant of the
+> zynq NAND driver simply doesn't exist upstream. See README.md "NAND
+> boot" section for the three known paths forward (FSBL via
+> meta-xilinx-standalone / custom Zynq SPL NAND loader / stay on the
+> current hybrid SD-boot + NAND-rootfs flow).
 
 The existing `boot.cmd.ebaz4205` is still MMC-flavoured, so after
 SPL→u-boot, autoboot will fall through to the u-boot prompt. Either
@@ -264,6 +274,7 @@ below.
 | `Bad Magic Number` from `bootm` | Kernel didn't land at 0x2080000 — usually `nand read` target offset or size mismatch. `iminfo 0x2080000` should show a valid uImage header. |
 | Kernel panics with `Cannot open root device "ubi0:rootfs" ... error -19` | Kernel built without `CONFIG_MTD_UBI=y` / `CONFIG_UBIFS_FS=y`. Rebuild; these are enabled via `recipes-kernel/linux/config/bsp/fs/mtd.cfg` in this layer. |
 | `macb: Could not attach PHY (-22)` after NAND boot | Bitstream not loaded, or the `fpga loadb` step was skipped / out of order. Make sure the bitstream load runs **before** `bootm`. |
+| `SPL: failed to boot from all boot devices` right after the SPL banner, when the board is in NAND-boot mode | Expected on this tree: u-boot-xlnx 2024.01 has no Zynq 7000 SPL NAND loader. Stay in SD-boot mode (MIO4 high) and use NAND only as rootfs/UBI storage, or implement one of the options in README.md "NAND boot". |
 
 ---
 
@@ -384,8 +395,11 @@ ls /mnt                                    # sanity-check rootfs
       / bitstream from NAND instead of MMC, so a pure NAND boot
       (R2584 populated / R2577 removed) runs without the user having
       to `run nandboot` at the u-boot prompt.
-- [ ] SPL-side `CONFIG_SPL_NAND_SUPPORT` + `CONFIG_SYS_NAND_U_BOOT_OFFS
-      = 0x00400000` so SPL can fetch `u-boot.img` from the `uboot` NAND
-      partition after BootROM loads `boot.bin` from offset 0.
+- [ ] SPL-side NAND boot — attempted, rolled back. u-boot-xlnx 2024.01
+      has no `nand_spl_load_image()` for Zynq 7000 (only Denali /
+      DaVinci / FSL / MXC / MXS / Sunxi / LPC / MT7621), so enabling
+      `CONFIG_SPL_NAND_SUPPORT=y` fails link. Three paths forward
+      documented in README.md "NAND boot" — FSBL / custom Zynq SPL
+      loader / keep the SD-boot + NAND-rootfs hybrid.
 - [ ] JTAG flashing (OpenOCD / XSCT) — deferred, not needed for the
       SD-first flow.

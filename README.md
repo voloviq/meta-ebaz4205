@@ -10,7 +10,7 @@ device tree is mainline-style and the U-Boot SPL is built from source using
 board-specific `ps7_init_gpl.[ch]` checked into this layer.
 
 **Status:** boots to a Poky 5.0 userland login over UART1 from SD card
-**or NAND**, with:
+(NAND-boot is not feasible with the current upstream — see below), with:
 
 - **Ethernet** via a shipped FPGA bitstream that routes PS GEM0 through
   EMIO to the on-board IP101GA PHY (the PHY is wired to PL pins, not
@@ -319,13 +319,34 @@ PCB near the Zynq. No other modification needed.
 
 ---
 
-## NAND boot (not supported yet)
+## NAND boot (not feasible with upstream u-boot-xlnx 2024.01)
 
-Factory firmware was programmed over JTAG on Ebang's production line. For
-hobbyist use the standard workflow is: boot from SD first, then from within
-Linux use `mtd-utils` (`flash_erase`, `nandwrite`, `ubiformat`) to program
-NAND. DTS partitioning and a NAND image recipe are on the roadmap; for now
-this layer only produces SD images.
+Enabling `CONFIG_SPL_NAND_SUPPORT=y` on this tree produces a clean Kconfig
+build but fails SPL link with undefined references to `nand_spl_load_image`,
+`nand_spl_adjust_offset`, `nand_init`, `nand_register`, `nand_calculate_ecc`,
+`nand_correct_data`, `nand_deselect`. Reason: **u-boot-xlnx 2024.01 does not
+ship an SPL NAND loader for Zynq 7000.** `nand_spl_load_image()` is provided
+only for Denali / DaVinci / FSL / MXC / MXS / Sunxi / LPC / MT7621; `zynq_nand.c`
+has only the full-u-boot driver, no SPL variant. `meta-xilinx` does not add
+one either — the canonical Xilinx path for NAND boot is FSBL (not u-boot SPL),
+via `meta-xilinx-standalone`'s `fsbl-firmware` recipe, which this layer
+explicitly opts out of (`EXTRA_IMAGEDEPENDS:remove = "virtual/fsbl"`).
+
+Three realistic paths if true NAND-boot is required later:
+
+1. **FSBL** — add `meta-xilinx-standalone` to `bblayers.conf`, stop removing
+   `virtual/fsbl`, arrange a baremetal (`arm-none-eabi`) multilib / TCLIBC
+   so `fsbl-firmware_generic.inc` can compile. Largest setup cost, canonical.
+2. **Write a Zynq SPL NAND loader** — provide `nand_spl_load_image()`,
+   `nand_init()`, etc. against the zynq NAND controller. ~200–400 lines of
+   C, chip-specific (Micron/Hynix variant + geometry + timings must be
+   known for the exact board revision).
+3. **Keep the hybrid** — boot via SD (SPL + u-boot.img on the FAT partition),
+   use NAND only as rootfs storage (UBIFS on the `ubi` partition). `flash-nand`
+   on the target already does the userspace programming; no boot-mode resistor
+   change needed on the board. This is the currently-shipped path.
+
+Until one of 1/2 lands, this layer only produces SD images.
 
 ---
 

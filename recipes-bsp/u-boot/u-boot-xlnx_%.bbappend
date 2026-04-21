@@ -80,5 +80,17 @@ CONFIG_MTDPARTS_DEFAULT="mtdparts=nand0:4m(boot),4m(uboot),1m(dtb),4m(bitstream)
 # work out of the box when interrupting autoboot to flash NAND.
 CONFIG_USE_PREBOOT=y
 CONFIG_PREBOOT="if test -e mmc 0:1 /ebaz4205-base.bit; then fatload mmc 0 0x100000 /ebaz4205-base.bit && fpga loadb 0 0x100000 ${filesize}; fi"
+
+# NOTE: SPL NAND boot is intentionally NOT enabled. u-boot-xlnx 2024.01 has
+# no `zynq_nand_spl.c` — `nand_spl_load_image()` is only provided for
+# Denali/DaVinci/FSL/MXC/MXS/Sunxi/LPC/MT7621. Enabling CONFIG_SPL_NAND_SUPPORT
+# here compiles fine but fails link with undefined references to
+# `nand_spl_load_image`, `nand_spl_adjust_offset`, `nand_init`, `nand_register`,
+# `nand_calculate_ecc`, `nand_correct_data`, `nand_deselect` — because the
+# generic SPL nand path in common/spl/spl_nand.c has no backing driver on zynq.
+# Options if NAND boot is ever required: (a) write a zynq SPL NAND loader,
+# (b) bring back FSBL (drop the EXTRA_IMAGEDEPENDS:remove of virtual/fsbl
+# in the machine conf and add meta-xilinx-standalone's fsbl-firmware). Today
+# the board boots from SD only; flash-nand on target writes NAND from Linux.
 EOF
 }
